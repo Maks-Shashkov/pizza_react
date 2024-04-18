@@ -17,7 +17,6 @@ function PizzaBlock({id, title, price, imageUrl, sizes, types}) {
     } else {
         addedCount = 0;
     }
-    console.log(cartItem)
 
 
     

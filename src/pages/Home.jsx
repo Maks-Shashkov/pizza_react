@@ -10,12 +10,15 @@ import Skeleton from "../components/PizzaBlock/Skeleton";
 import Pagination from "../components/Pagination";
 import {SearchContext} from "../App";
 import axios from "axios";
+import { list } from "../components/Sort";
 
 const Home = () => {
    
     const {categoryId, sort, currentPage} = useSelector((state) => state.filter)
     const navigate = useNavigate();
     const dispatch = useDispatch();
+    const isSearch = React.useRef(false);
+    const isMounted = React.useRef(false);
     
     const {searchValue} = React.useContext(SearchContext)
     const [items, setItems] = React.useState([])
@@ -27,22 +30,7 @@ const Home = () => {
     
     const onChangePage = number => dispatch(setCurrentPage(number))
     
-    React.useEffect(() => {
-        if(window.location.search) {
-            const params = qs.parse(window.location.search.substring(1))
-            
-            // const sort = list.find(obj => obj.sortProperty === params.sortProperty)
-
-            // dispatch(
-            //     setFilters({
-            //         params,
-            //         sort,
-            //     })
-            // )
-        }
-    }, [])
-    
-    React.useEffect(() => {
+    const filterSlice = () => {
         setIsLoading(true);
         const sortBy = sort.sortProperty.replace('-',   '');
         // из свойства удалить минус и добавляет свойство в переменную без минуса. Свойство в объекте не меняет
@@ -55,18 +43,51 @@ const Home = () => {
             setItems(res.data);
             setIsLoading(false)
         })
+    }
+    
+    // если изменили параметры и был первый рендер
+    React.useEffect(() => {
+        if (isMounted.current) {
+            const queryString = qs.stringify({
+                sortProperty: sort.sortProperty,
+                categoryId,
+                currentPage,
+            });
+            navigate(`?${queryString}`)
+        }
+        isMounted.current = true;
+    }, [categoryId, sort.sortProperty, searchValue, currentPage])
+    
+    
+    // если был первый рендер, то проверяем url параметры и сохраняем в редуксе
+    React.useEffect(() => {
+        if(window.location.search) {
+            const params = qs.parse(window.location.search.substring(1));
+            
+            const sort = list.find(obj => obj.sortProperty === params.sortProperty)
+
+            dispatch(
+                setFilters({
+                    ...params,
+                    sort,
+                })
+            )
+            isSearch.current = true;
+        }
+    }, [])
+    
+    // если был первый рендер, то запрашиваем пиццы
+    React.useEffect(() => {
         window.scrollTo(0, 0); // что бы при попадании на страницу, scroll был сверху, а не снизу
+        
+        if (!isSearch.current) {
+            filterSlice();
+        }
+        
+        isSearch.current = false;
+        
     }, [categoryId, sort.sortProperty, searchValue, currentPage]);
     
-    React.useEffect(() => {
-        const queryString = qs.stringify({
-            sortProperty: sort.sortProperty,
-            categoryId,
-            currentPage,
-        });
-        navigate(`?${queryString}`)
-        
-    }, [categoryId, sort.sortProperty, searchValue, currentPage])
     
     // constent
     let content = items.map((obj) => <PizzaBlock key={obj.id} {...obj}/>);
