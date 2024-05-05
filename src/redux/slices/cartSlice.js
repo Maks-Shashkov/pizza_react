@@ -46,6 +46,7 @@ const cartSlice = createSlice({
         
     }
 });
+console.log(initialState.items)
 
 export const {addProduct,removeProduct,clearProduct,minusProduct} = cartSlice.actions;
 

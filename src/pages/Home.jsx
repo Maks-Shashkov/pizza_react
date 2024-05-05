@@ -30,7 +30,7 @@ const Home = () => {
     
     const onChangePage = number => dispatch(setCurrentPage(number))
     
-    const filterSlice = () => {
+    const filterSlice = async () => {
         setIsLoading(true);
         const sortBy = sort.sortProperty.replace('-',   '');
         // из свойства удалить минус и добавляет свойство в переменную без минуса. Свойство в объекте не меняет
@@ -38,11 +38,21 @@ const Home = () => {
         const category = categoryId > 0 ? `category=${categoryId}` : '';
         const search = searchValue ? `&search=${searchValue}` : '';
         
-        axios.get(`https://653bd07fd5d6790f5ec77cbc.mockapi.io/items?page=${currentPage}&limit=4&${category}&sortBy=${sortBy}&order=${order}${search}`
-        ).then((res) => {
+        // await axios.get(`https://653bd07fd5d6790f5ec77cbc.mockapi.io/items?page=${currentPage}&limit=4&${category}&sortBy=${sortBy}&order=${order}${search}`
+        // ).then((res) => {
+        //     setItems(res.data);
+        //     setIsLoading(false)
+        // })
+        
+        try {
+            const res = await axios.get(`https://653bd07fd5d6790f5ec77cbc.mockapi.io/items?page=${currentPage}&limit=4&${category}&sortBy=${sortBy}&order=${order}${search}`)
             setItems(res.data);
-            setIsLoading(false)
-        })
+            setIsLoading(false);
+        } catch (error) {
+            setIsLoading(false);
+            console.log(error);
+        }
+    
     }
     
     // если изменили параметры и был первый рендер
